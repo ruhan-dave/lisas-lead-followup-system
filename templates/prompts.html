@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Lisa — Prompts{% endblock %}
+{% block content %}
+
+<div class="section-header">
+    <div>
+        <h2>A/B Test Variants</h2>
+        <div class="subtitle">
+            Edit the 5 welcome and 25 follow-up email variants.
+            {% if days_remaining is not none %}
+                {% if days_remaining > 0 %}
+                <span class="email-response-rate">Custom edits active — {{ days_remaining }} day{{ 's' if days_remaining != 1 else '' }} remaining</span>
+                {% else %}
+                <span class="badge badge-failed">Custom edits expired — using default prompts</span>
+                {% endif %}
+            {% else %}
+            Changes apply for the next 3 days.
+            {% endif %}
+            {% if prompts.created_at %}
+            <br><small>Last saved: {{ prompts.created_at[:19].replace('T', ' ') }}</small>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<form action="/prompts/save" method="POST">
+
+{% if prompts.welcome %}
+<div class="prompt-group">
+    <h3>Welcome Emails — 5 Variants</h3>
+    <div class="note">Each variant is assigned to a different A/B test group</div>
+    {% for var in prompts.welcome %}
+    <div class="variation-card">
+        <div class="variation-header">
+            <span class="variation-id">Variant {{ loop.index0 + 1 }} ({{ var.id }})</span>
+            <span class="variation-label">{{ var.label }}</span>
+            <span class="badge badge-started">Group {{ loop.index0 + 1 }}</span>
+        </div>
+        <div class="field-group">
+            <label>Subject Line</label>
+            <input type="text" name="welcome_{{ loop.index0 }}_subject" value="{{ var.subject }}">
+        </div>
+        <div class="field-group">
+            <label>System Prompt</label>
+            <textarea name="welcome_{{ loop.index0 }}_system_prompt">{{ var.system_prompt }}</textarea>
+        </div>
+        <div class="field-group">
+            <label>User Prompt Template</label>
+            <textarea name="welcome_{{ loop.index0 }}_user_prompt">{{ var.user_prompt_template }}</textarea>
+        </div>
+        <div class="field-group">
+            <button type="submit" name="save_variant" value="welcome_{{ loop.index0 }}" class="btn btn-primary" style="width:100%">Save Variant {{ loop.index0 + 1 }}</button>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% if prompts.followup %}
+<div class="prompt-group">
+    <h3>Follow-Up Emails — 25 Variants</h3>
+    <div class="note">Each variant is assigned to a different A/B test group</div>
+    {% for var in prompts.followup %}
+    <div class="variation-card">
+        <div class="variation-header">
+            <span class="variation-id">Variant {{ loop.index0 + 1 }} ({{ var.id }})</span>
+            <span class="variation-label">{{ var.label }}</span>
+            <span class="badge badge-started">Group {{ loop.index0 + 1 }}</span>
+        </div>
+        <div class="field-group">
+            <label>Subject Line</label>
+            <input type="text" name="followup_{{ loop.index0 }}_subject" value="{{ var.subject }}">
+        </div>
+        <div class="field-group">
+            <label>System Prompt</label>
+            <textarea name="followup_{{ loop.index0 }}_system_prompt">{{ var.system_prompt }}</textarea>
+        </div>
+        <div class="field-group">
+            <label>User Prompt Template</label>
+            <textarea name="followup_{{ loop.index0 }}_user_prompt">{{ var.user_prompt_template }}</textarea>
+        </div>
+        <div class="field-group">
+            <button type="submit" name="save_variant" value="followup_{{ loop.index0 }}" class="btn btn-primary" style="width:100%">Save Variant {{ loop.index0 + 1 }}</button>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div style="display:flex; align-items:center; gap:16px; margin-top:8px;">
+    <button type="submit" class="btn btn-primary">Save Changes</button>
+    <span class="note">Saved prompts take effect on next day's scheduled runs.</span>
+</div>
+</form>
+
+{% endblock %}

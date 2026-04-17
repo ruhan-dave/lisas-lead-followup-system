@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Lisa — Runs{% endblock %}
+{% block content %}
+
+{% if groups_at_30 %}
+<div class="alert alert-warning" style="margin-bottom: 20px; padding: 16px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px;">
+    <div style="font-weight: 600; margin-bottom: 8px; color: #856404;">📊 Review Required: Groups at 30 Emails</div>
+    <div style="color: #856404;">
+        The following groups have reached 30 emails sent. Review response rates and consider template changes:
+        {% for group in groups_at_30 %}
+        <div style="margin-top: 8px; padding: 8px; background: rgba(255, 255, 255, 0.7); border-radius: 4px;">
+            <strong>Group {{ group.group }}:</strong>
+            {{ group.emails_sent }} emails sent,
+            <span class="email-response-rate">{{ group.response_rate }}% response rate</span>,
+            {{ group.avg_response_time_hours }}h avg response time
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<div class="section-header">
+    <div>
+        <h2>Runs</h2>
+        <div class="subtitle">Scheduled and manual campaign runs. Response rates update daily at midnight EST via IMAP.</div>
+    </div>
+    <div class="trigger-row">
+        <form action="/trigger/daily-batch" method="POST"><button class="btn btn-sm" type="submit">Daily Batch</button></form>
+        <form action="/trigger/check" method="POST"><button class="btn btn-sm" type="submit">Check Responses</button></form>
+        <form action="/trigger/metrics" method="POST"><button class="btn btn-sm" type="submit">Metrics</button></form>
+    </div>
+</div>
+
+<div class="card">
+    {% if runs %}
+    <ul class="run-list">
+        {% for run in runs %}
+        <li class="run-item">
+            <span class="run-action">{{ run.action }}</span>
+            <span class="run-time">{{ run.timestamp }}</span>
+            <span class="run-source">{{ run.triggered_by }}</span>
+            {% if run.status %}
+            <span class="badge badge-{{ run.status.lower() }}">{{ run.status }}</span>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <div class="empty">No runs yet. Trigger an action above.</div>
+    {% endif %}
+
+    {% if airtable_urls %}
+    <div class="airtable-bar">
+        {% if airtable_urls.leads %}<a href="{{ airtable_urls.leads }}" target="_blank">Leads &nearr;</a>{% endif %}
+        {% if airtable_urls.messages %}<a href="{{ airtable_urls.messages }}" target="_blank">Messages &nearr;</a>{% endif %}
+        {% if airtable_urls.actions %}<a href="{{ airtable_urls.actions }}" target="_blank">Actions &nearr;</a>{% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<div class="section-header" style="margin-top: 32px;">
+    <div>
+        <h2>Manual Campaigns</h2>
+        <div class="subtitle">One-off sends for specific lead groups</div>
+    </div>
+</div>
+<div class="trigger-row">
+    <form action="/trigger/welcome" method="POST"><button class="btn" type="submit">Welcome Campaign</button></form>
+    <form action="/trigger/followup" method="POST"><button class="btn" type="submit">Follow-Up Campaign</button></form>
+    <form action="/trigger/full_run" method="POST"><button class="btn" type="submit">Full Run</button></form>
+</div>
+
+{% endblock %}

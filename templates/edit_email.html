@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Lisa — Edit Email{% endblock %}
+{% block content %}
+
+<div class="section-header">
+    <div>
+        <h2>Edit Email</h2>
+        <div class="subtitle">Edit this AI-generated email and save as custom template</div>
+    </div>
+    <a href="/emails" class="btn btn-sm">Cancel</a>
+</div>
+
+<div class="card">
+    <div class="field-group">
+        <label>Email Type</label>
+        <input type="text" value="{{ message.type }}" disabled>
+    </div>
+    <div class="field-group">
+        <label>Email Content</label>
+        <form method="POST">
+            <textarea name="content" rows="12">{{ message.content }}</textarea>
+            <div style="margin-top:16px;">
+                <button type="submit" class="btn btn-primary">Save as Custom Template</button>
+                <span class="note">This will override AI generation for this email type.</span>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

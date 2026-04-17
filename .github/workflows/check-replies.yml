@@ -1,0 +1,48 @@
+name: Check Email Replies
+
+on:
+  schedule:
+    # Run daily at midnight EST (5:00 UTC)
+    - cron: '0 5 * * *'
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  check-replies:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Check for email replies
+        env:
+          AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
+          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+          AIRTABLE_LEADS_TABLE: ${{ secrets.AIRTABLE_LEADS_TABLE }}
+          AIRTABLE_MESSAGES_TABLE: ${{ secrets.AIRTABLE_MESSAGES_TABLE }}
+          AIRTABLE_AGENT_ACTIONS_TABLE: ${{ secrets.AIRTABLE_AGENT_ACTIONS_TABLE }}
+          AIRTABLE_BASE_URL: ${{ secrets.AIRTABLE_BASE_URL }}
+          AIRTABLE_LEADS_URL: ${{ secrets.AIRTABLE_LEADS_URL }}
+          AIRTABLE_MESSAGES_URL: ${{ secrets.AIRTABLE_MESSAGES_URL }}
+          AIRTABLE_AGENT_ACTIONS_URL: ${{ secrets.AIRTABLE_AGENT_ACTIONS_URL }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENROUTER_MODEL: ${{ secrets.OPENROUTER_MODEL }}
+          SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          IMAP_SERVER: ${{ secrets.IMAP_SERVER }}
+          IMAP_PORT: ${{ secrets.IMAP_PORT }}
+          AB_GROUP_SIZE: ${{ secrets.AB_GROUP_SIZE }}
+        run: |
+          python main.py check-replies

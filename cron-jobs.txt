@@ -1,0 +1,21 @@
+# Trigger.dev Alternative: Cron Jobs for Lisa Lead Follow-Up System
+# Add these to your crontab with: crontab -e
+
+# Daily email batches (4x daily: 9am, 12pm, 3pm, 6pm Eastern)
+0 9 * * * cd /Users/davewang/Downloads/lead_followup_system && source venv/bin/activate && python main.py daily-batch --size 3 >> logs/cron.log 2>&1
+0 12 * * * cd /Users/davewang/Downloads/lead_followup_system && source venv/bin/activate && python main.py daily-batch --size 3 >> logs/cron.log 2>&1
+0 15 * * * cd /Users/davewang/Downloads/lead_followup_system && source venv/bin/activate && python main.py daily-batch --size 3 >> logs/cron.log 2>&1
+0 18 * * * cd /Users/davewang/Downloads/lead_followup_system && source venv/bin/activate && python main.py daily-batch --size 3 >> logs/cron.log 2>&1
+
+# Check for responses (hourly)
+0 * * * * cd /Users/davewang/Downloads/lead_followup_system && source venv/bin/activate && python main.py check >> logs/cron.log 2>&1
+
+# Weekly metrics report (Mondays at 8am)
+0 8 * * 1 cd /Users/davewang/Downloads/lead_followup_system && source venv/bin/activate && python main.py metrics >> logs/cron.log 2>&1
+
+# To install:
+# 1. Create logs directory: mkdir -p logs
+# 2. Edit crontab: crontab -e
+# 3. Paste the lines above
+# 4. Save and exit
+# 5. Verify: crontab -l

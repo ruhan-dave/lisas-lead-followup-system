@@ -1,0 +1,45 @@
+name: Daily Email Batch
+
+on:
+  schedule:
+    # 9am, 12pm, 3pm, 6pm EST (14, 17, 20, 23 UTC)
+    - cron: '0 14,17,20,23 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  daily-batch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run daily batch
+        env:
+          AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
+          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+          AIRTABLE_LEADS_TABLE: ${{ secrets.AIRTABLE_LEADS_TABLE }}
+          AIRTABLE_MESSAGES_TABLE: ${{ secrets.AIRTABLE_MESSAGES_TABLE }}
+          AIRTABLE_AGENT_ACTIONS_TABLE: ${{ secrets.AIRTABLE_AGENT_ACTIONS_TABLE }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          OPENROUTER_MODEL: ${{ secrets.OPENROUTER_MODEL }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          EMAIL_DAILY_LIMIT: ${{ secrets.EMAIL_DAILY_LIMIT }}
+          EMAIL_MIN_DELAY_SECONDS: ${{ secrets.EMAIL_MIN_DELAY_SECONDS }}
+          AB_GROUP_SIZE: ${{ secrets.AB_GROUP_SIZE }}
+          LOG_LEVEL: ${{ secrets.LOG_LEVEL }}
+          DRY_RUN: ${{ secrets.DRY_RUN }}
+        run: |
+          python main.py daily-batch --size 3

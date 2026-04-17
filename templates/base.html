@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Lisa{% endblock %}</title>
+    <style>
+        :root {
+            --bg: #fafafa;
+            --surface: #fff;
+            --border: #e5e5e5;
+            --text: #111;
+            --text2: #666;
+            --text3: #999;
+            --accent: #3b82f6; /* Blue for Lisa input */
+            --accent-hover: #2563eb;
+            --green: #22c55e; /* Green for running runs */
+            --red: #ef4444; /* Red for attention needed */
+            --yellow: #eab308; /* Yellow for response rates */
+            --orange: #f97316; /* Orange for edits */
+            --radius: 8px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+
+        /* Nav */
+        .nav {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .nav-inner {
+            max-width: 960px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            height: 56px;
+        }
+        .nav-brand {
+            font-weight: 600;
+            font-size: 15px;
+            color: var(--text);
+            text-decoration: none;
+        }
+        .nav-links { display: flex; gap: 4px; }
+        .nav-links a {
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text2);
+            text-decoration: none;
+            transition: all .15s;
+        }
+        .nav-links a:hover { background: var(--bg); color: var(--text); }
+        .nav-links a.active { background: var(--bg); color: var(--text); font-weight: 600; }
+        .nav-airtable {
+            margin-left: auto;
+            font-size: 13px;
+            color: var(--accent);
+            text-decoration: none;
+        }
+        .nav-airtable:hover { text-decoration: underline; }
+
+        /* Main */
+        .main {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 32px 24px;
+        }
+
+        /* Flash */
+        .flash {
+            padding: 12px 16px;
+            border-radius: var(--radius);
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+        .flash.success { background: #f0fdf4; color: var(--green); border: 1px solid #bbf7d0; }
+        .flash.error { background: #fef2f2; color: var(--red); border: 1px solid #fecaca; }
+
+        /* Section header */
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .section-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .section-header .subtitle {
+            font-size: 13px;
+            color: var(--text3);
+        }
+
+        /* Card */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+        }
+
+        /* Run list */
+        .run-list { list-style: none; }
+        .run-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+            gap: 16px;
+        }
+        .run-item:last-child { border-bottom: none; }
+        .run-action {
+            font-size: 14px;
+            font-weight: 500;
+            min-width: 120px;
+        }
+        .run-time {
+            font-size: 13px;
+            color: var(--text3);
+            min-width: 140px;
+        }
+        .run-source {
+            font-size: 12px;
+            color: var(--text3);
+            min-width: 100px;
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 99px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: auto;
+        }
+        .badge-completed { background: #f0fdf4; color: var(--green); border: 1px solid #bbf7d0; }
+        .badge-failed { background: #fef2f2; color: var(--red); border: 1px solid #fecaca; }
+        .badge-started { background: #eff6ff; color: var(--accent); }
+        .badge-running { background: #f0fdf4; color: var(--green); border: 1px solid #bbf7d0; }
+
+        /* Email list */
+        .email-item {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+        .email-item:last-child { border-bottom: none; }
+        .email-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        .email-type {
+            font-size: 13px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: var(--bg);
+        }
+        .email-time {
+            font-size: 12px;
+            color: var(--text3);
+        }
+        .email-group {
+            font-size: 12px;
+            color: var(--text3);
+        }
+        .email-response-rate {
+            color: var(--yellow);
+            font-weight: 600;
+        }
+        .email-body {
+            font-size: 14px;
+            color: var(--text2);
+            white-space: pre-wrap;
+            max-height: 120px;
+            overflow: hidden;
+            position: relative;
+        }
+        .email-body.expanded { max-height: none; }
+        .email-toggle {
+            font-size: 12px;
+            color: var(--accent);
+            cursor: pointer;
+            margin-top: 4px;
+            display: inline-block;
+        }
+        .email-toggle:hover { text-decoration: underline; }
+
+        /* Prompt editor */
+        .prompt-group {
+            margin-bottom: 32px;
+        }
+        .prompt-group h3 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+        .variation-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        .variation-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .variation-id {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent);
+            font-family: monospace;
+        }
+        .variation-label {
+            font-size: 13px;
+            color: var(--text2);
+        }
+        .field-group { margin-bottom: 12px; }
+        .field-group:last-child { margin-bottom: 0; }
+        .field-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .field-group input,
+        .field-group textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color .15s;
+        }
+        .field-group input:focus,
+        .field-group textarea:focus {
+            outline: none;
+            border-color: var(--orange);
+            box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.1);
+        }
+        .field-group textarea { min-height: 80px; }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            background: var(--surface);
+            color: var(--text);
+            transition: all .15s;
+        }
+        .btn:hover { background: var(--bg); }
+        .btn-primary {
+            background: var(--orange);
+            color: #fff;
+            border-color: var(--orange);
+        }
+        .btn-primary:hover { background: #ea580c; }
+        .btn-sm { padding: 5px 12px; font-size: 12px; }
+
+        /* Trigger row */
+        .trigger-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        /* Empty state */
+        .empty {
+            text-align: center;
+            padding: 48px 20px;
+            color: var(--text3);
+            font-size: 14px;
+        }
+
+        /* Airtable links bar */
+        .airtable-bar {
+            display: flex;
+            gap: 16px;
+            padding: 12px 20px;
+            border-top: 1px solid var(--border);
+            background: var(--bg);
+            border-radius: 0 0 var(--radius) var(--radius);
+        }
+        .airtable-bar a {
+            font-size: 12px;
+            color: var(--accent);
+            text-decoration: none;
+        }
+        .airtable-bar a:hover { text-decoration: underline; }
+
+        /* Note */
+        .note {
+            font-size: 13px;
+            color: var(--text3);
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="nav-inner">
+            <a href="/" class="nav-brand">Lisa</a>
+            <div class="nav-links">
+                <a href="/" class="{% if request.path == '/' %}active{% endif %}">Runs</a>
+                <a href="/emails" class="{% if request.path == '/emails' %}active{% endif %}">Emails</a>
+                <a href="/prompts" class="{% if request.path == '/prompts' %}active{% endif %}">Prompts</a>
+            </div>
+            {% if airtable_urls and airtable_urls.base %}
+            <a href="{{ airtable_urls.base }}" target="_blank" class="nav-airtable">Airtable &nearr;</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <main class="main">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <script>
+        // Toggle email body expansion
+        document.querySelectorAll('.email-toggle').forEach(el => {
+            el.addEventListener('click', () => {
+                const body = el.previousElementSibling;
+                body.classList.toggle('expanded');
+                el.textContent = body.classList.contains('expanded') ? 'Show less' : 'Read more';
+            });
+        });
+    </script>
+</body>
+</html>

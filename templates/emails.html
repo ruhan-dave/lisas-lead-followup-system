@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Lisa — Emails{% endblock %}
+{% block content %}
+
+<div class="section-header">
+    <div>
+        <h2>Emails</h2>
+        <div class="subtitle">AI-generated email content</div>
+    </div>
+    {% if airtable_urls.messages %}
+    <a href="{{ airtable_urls.messages }}" target="_blank" class="btn btn-sm">View in Airtable &nearr;</a>
+    {% endif %}
+</div>
+
+<div class="card">
+    {% if messages %}
+    {% for msg in messages %}
+    <div class="email-item">
+        <div class="email-header">
+            <span class="email-type">{{ msg.type }}</span>
+            <span class="email-time">{{ msg.created_time }}</span>
+            {% if msg.group %}<span class="email-group">Group {{ msg.group }}</span>{% endif %}
+            {% if msg.response_rate %}<span class="email-group email-response-rate">{{ msg.response_rate }}% response</span>{% endif %}
+            <a href="/emails/{{ msg.id }}/edit" class="btn btn-sm">Edit</a>
+        </div>
+        <div class="email-body">{{ msg.content }}</div>
+        <span class="email-toggle">Read more</span>
+    </div>
+    {% endfor %}
+    {% else %}
+    <div class="empty">No emails sent yet.</div>
+    {% endif %}
+
+    {% if airtable_urls %}
+    <div class="airtable-bar">
+        {% if airtable_urls.messages %}<a href="{{ airtable_urls.messages }}" target="_blank">All Messages in Airtable &nearr;</a>{% endif %}
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

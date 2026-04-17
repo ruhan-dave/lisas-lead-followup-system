@@ -1,0 +1,25 @@
+{
+  "name": "lead-followup-trigger",
+  "version": "1.0.0",
+  "description": "Trigger.dev wrapper for Lisa Lead Follow-Up System with A/B Testing",
+  "type": "module",
+  "scripts": {
+    "dev": "trigger dev",
+    "deploy": "trigger deploy",
+    "status": "trigger status"
+  },
+  "dependencies": {
+    "@trigger.dev/sdk": "^3.3.0",
+    "execa": "^9.6.1"
+  },
+  "devDependencies": {
+    "@trigger.dev/cli": "^3.3.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "trigger.dev": {
+    "endpointId": "proj_zngcaxgwflvcxympxixg"
+  }
+}

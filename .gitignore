@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# Environment variables
+.env
+
+# Custom prompts (Lisa's edits, local only)
+config/custom_prompts.json
+config/custom_email_templates.json
+
+# Logs
+logs/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Trigger.dev (not using, but keeping for reference)
+node_modules/
+package-lock.json
+*.tsbuildinfo
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
