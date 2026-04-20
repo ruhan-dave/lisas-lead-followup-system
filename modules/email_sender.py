@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-from config.settings import EmailConfig, SystemConfig
+from config.settings import EmailConfig, SMTPConfig, SystemConfig
 
 logger = logging.getLogger(__name__)
 
@@ -27,12 +27,12 @@ class EmailSender:
             min_delay_seconds: Minimum seconds between emails (uses EMAIL_MIN_DELAY_SECONDS env var or 5s)
             daily_limit: Maximum emails per day (uses EMAIL_DAILY_LIMIT env var or 100)
         """
-        self.host = EmailConfig.SMTP_HOST
-        self.port = EmailConfig.SMTP_PORT
-        self.user = EmailConfig.SMTP_USER
-        self.password = EmailConfig.SMTP_PASSWORD
+        self.host = SMTPConfig.SMTP_SERVER
+        self.port = SMTPConfig.SMTP_PORT
+        self.user = SMTPConfig.SMTP_USER
+        self.password = SMTPConfig.SMTP_PASSWORD
         self.from_name = EmailConfig.FROM_NAME
-        self.from_address = EmailConfig.FROM_ADDRESS
+        self.from_address = SMTPConfig.EMAIL_FROM
         self.dry_run = SystemConfig.DRY_RUN
         
         # Rate limiting settings from config or defaults
