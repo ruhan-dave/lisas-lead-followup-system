@@ -30,6 +30,10 @@ logger = logging.getLogger(__name__)
 CUSTOM_TEMPLATES_FILE = os.path.join(
     os.path.dirname(__file__), '..', 'config', 'custom_email_templates.json'
 )
+# Path to placeholder configuration
+PLACEHOLDERS_FILE = os.path.join(
+    os.path.dirname(__file__), '..', 'config', 'placeholders.json'
+)
 
 # Store reference emails for similarity checking (first email per variant)
 REFERENCE_EMAILS = {}
@@ -45,6 +49,7 @@ class Orchestrator:
         self.email_sender = EmailSender()
         self.tracker = ResponseTracker(self.airtable)
         self.custom_templates = self._load_custom_templates()
+        self.placeholders = self._load_placeholders()
 
     def _load_custom_templates(self) -> dict:
         """Load custom email templates from JSON file."""
@@ -55,6 +60,26 @@ class Orchestrator:
             except Exception as e:
                 logger.warning("Failed to load custom templates: %s", e)
         return {}
+
+    def _load_placeholders(self) -> dict:
+        """Load placeholder configuration from JSON file."""
+        if os.path.exists(PLACEHOLDERS_FILE):
+            try:
+                with open(PLACEHOLDERS_FILE, 'r') as f:
+                    data = json.load(f)
+                    return data.get("placeholders", {})
+            except Exception as e:
+                logger.warning("Failed to load placeholders: %s", e)
+        return {
+            "name": "Lisa",
+            "company": "Your Company",
+            "email": "lisa@example.com",
+            "phone": "+1 (555) 123-4567",
+            "website": "https://example.com",
+            "product": "Our Solution",
+            "service": "Our Service",
+            "industry": "Technology"
+        }
 
     def _generate_with_similarity_check(
         self,
@@ -303,18 +328,32 @@ class Orchestrator:
         # Fetch Company field
         company = lead.get("fields", {}).get("Company", "")
 
+        # Build placeholder values (use lead data if available, otherwise use configured placeholders)
+        placeholder_values = {
+            "name": name if name else self.placeholders.get("name", "Lisa"),
+            "company": company if company else self.placeholders.get("company", "Your Company"),
+            "email": self.placeholders.get("email", "lisa@example.com"),
+            "phone": self.placeholders.get("phone", "+1 (555) 123-4567"),
+            "website": self.placeholders.get("website", "https://example.com"),
+            "product": self.placeholders.get("product", "Our Solution"),
+            "service": self.placeholders.get("service", "Our Service"),
+            "industry": self.placeholders.get("industry", "Technology"),
+        }
+
         # Check for custom template first (Lisa's edited email)
         template_key = f"{msg_type}_template"
         if template_key in self.custom_templates:
             # Use Lisa's custom template
             custom_template = self.custom_templates[template_key]
             body = custom_template["content"]
-            # Replace placeholders in custom template
-            body = body.replace("{name}", name).replace("{company}", company)
+            # Replace placeholders in custom template using configured values
+            for key, value in placeholder_values.items():
+                body = body.replace(f"{{{key}}}", value)
             # Clean up markdown and placeholders
             body = clean_email_content(body)
             subject = custom_template.get("subject", variation["subject"])
-            subject = subject.replace("{name}", name).replace("{company}", company)
+            for key, value in placeholder_values.items():
+                subject = subject.replace(f"{{{key}}}", value)
             tokens_used = 0  # No AI generation for custom templates
             logger.info("Using custom template for %s (message_id: %s)", msg_type, custom_template.get("original_message_id"))
         else:

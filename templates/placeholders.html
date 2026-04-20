@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Lisa — Placeholder Configuration{% endblock %}
+{% block content %}
+
+<div class="section-header">
+    <div>
+        <h2>Placeholder Configuration</h2>
+        <div class="subtitle">
+            Configure default values for email template placeholders.
+            These are used when lead data is not available.
+        </div>
+    </div>
+</div>
+
+<form action="/placeholders/save" method="POST">
+    <div class="prompt-group">
+        <h3>Personal Information</h3>
+        <div class="field-group">
+            <label>Sender Name</label>
+            <input type="text" name="name" value="{{ placeholders.name }}" placeholder="Lisa">
+            <small>Used in {name} placeholder</small>
+        </div>
+        <div class="field-group">
+            <label>Sender Email</label>
+            <input type="email" name="email" value="{{ placeholders.email }}" placeholder="lisa@example.com">
+            <small>Used in {email} placeholder</small>
+        </div>
+        <div class="field-group">
+            <label>Phone Number</label>
+            <input type="tel" name="phone" value="{{ placeholders.phone }}" placeholder="+1 (555) 123-4567">
+            <small>Used in {phone} placeholder</small>
+        </div>
+    </div>
+
+    <div class="prompt-group">
+        <h3>Company Information</h3>
+        <div class="field-group">
+            <label>Company Name</label>
+            <input type="text" name="company" value="{{ placeholders.company }}" placeholder="Your Company">
+            <small>Used in {company} placeholder</small>
+        </div>
+        <div class="field-group">
+            <label>Website URL</label>
+            <input type="url" name="website" value="{{ placeholders.website }}" placeholder="https://example.com">
+            <small>Used in {website} placeholder</small>
+        </div>
+        <div class="field-group">
+            <label>Industry</label>
+            <input type="text" name="industry" value="{{ placeholders.industry }}" placeholder="Technology">
+            <small>Used in {industry} placeholder</small>
+        </div>
+    </div>
+
+    <div class="prompt-group">
+        <h3>Product/Service Information</h3>
+        <div class="field-group">
+            <label>Product Name</label>
+            <input type="text" name="product" value="{{ placeholders.product }}" placeholder="Our Solution">
+            <small>Used in {product} placeholder</small>
+        </div>
+        <div class="field-group">
+            <label>Service Name</label>
+            <input type="text" name="service" value="{{ placeholders.service }}" placeholder="Our Service">
+            <small>Used in {service} placeholder</small>
+        </div>
+    </div>
+
+    <div class="field-group">
+        <button type="submit" class="btn btn-primary">Save Placeholder Configuration</button>
+        <a href="/" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+</form>
+
+{% endblock %}

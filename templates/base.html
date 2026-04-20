@@ -334,6 +334,7 @@
                 <a href="/" class="{% if request.path == '/' %}active{% endif %}">Runs</a>
                 <a href="/emails" class="{% if request.path == '/emails' %}active{% endif %}">Emails</a>
                 <a href="/prompts" class="{% if request.path == '/prompts' %}active{% endif %}">Prompts</a>
+                <a href="/placeholders" class="{% if request.path == '/placeholders' %}active{% endif %}">Placeholders</a>
             </div>
             {% if airtable_urls and airtable_urls.base %}
             <a href="{{ airtable_urls.base }}" target="_blank" class="nav-airtable">Airtable &nearr;</a>

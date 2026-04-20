@@ -32,8 +32,10 @@ def clean_email_content(content: str) -> str:
     # Remove markdown headers (# text)
     content = re.sub(r'^#\s+', '', content, flags=re.MULTILINE)
 
-    # Remove placeholder links like [Link: Create an account on your website]
+    # Remove placeholder links like [Link: ...] and [Link to ...]
     content = re.sub(r'\[Link: [^\]]+\]', '', content)
+    content = re.sub(r'\[Link to [^\]]+\]', '', content)
+    content = re.sub(r'\[Link\]', '', content)
 
     # Remove common placeholders
     placeholders = [
@@ -42,6 +44,20 @@ def clean_email_content(content: str) -> str:
         r'\[Website URL\]',
         r'\[Your Company\]',
         r'\[Your Website\]',
+        r'\[Company\]',
+        r'\[Name\]',
+        r'\[Email\]',
+        r'\[Phone\]',
+        r'\[Address\]',
+        r'\[Position\]',
+        r'\[Industry\]',
+        r'\[Product\]',
+        r'\[Service\]',
+        r'\[Date\]',
+        r'\[Time\]',
+        r'\[Location\]',
+        r'\[...\]',
+        r'\[.*?\]',  # Catch-all for any [placeholder]
     ]
     for pattern in placeholders:
         content = re.sub(pattern, '', content)

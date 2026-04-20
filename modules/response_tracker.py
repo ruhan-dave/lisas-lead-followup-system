@@ -89,6 +89,12 @@ class ResponseTracker:
         rate = (grp["responses"] / grp["emails_sent"]) * 100 if grp["emails_sent"] else 0
         self.airtable.update_message_response_rate(entry["airtable_record_id"], rate)
 
+        # CRITICAL: Update lead status to "Responded" in Airtable
+        lead_id = entry.get("lead_id")
+        if lead_id:
+            self.airtable.update_lead_status(lead_id, "Responded")
+            logger.info("Updated lead %s status to 'Responded'", lead_id)
+
         self._save_state()
         logger.info(
             "Recorded response from %s (group %s, time=%.0fs)",

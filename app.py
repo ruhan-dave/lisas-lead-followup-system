@@ -22,6 +22,8 @@ airtable = AirtableClient()
 PROMPTS_FILE = os.path.join(os.path.dirname(__file__), 'config', 'custom_prompts.json')
 # Path to custom email templates (Lisa's edited AI emails)
 CUSTOM_TEMPLATES_FILE = os.path.join(os.path.dirname(__file__), 'config', 'custom_email_templates.json')
+# Path to placeholder configuration
+PLACEHOLDERS_FILE = os.path.join(os.path.dirname(__file__), 'config', 'placeholders.json')
 
 
 def _load_prompts():
@@ -36,10 +38,38 @@ def _load_prompts():
 
 
 def _save_prompts(prompts_data):
-    """Save Lisa's custom prompts to disk"""
-    os.makedirs(os.path.dirname(PROMPTS_FILE), exist_ok=True)
+    """Save prompts to file"""
     with open(PROMPTS_FILE, 'w') as f:
         json.dump(prompts_data, f, indent=2)
+
+
+def _load_placeholders():
+    """Load placeholder configuration"""
+    if os.path.exists(PLACEHOLDERS_FILE):
+        with open(PLACEHOLDERS_FILE, 'r') as f:
+            data = json.load(f)
+            return data.get("placeholders", {})
+    return {
+        "name": "Lisa",
+        "company": "Your Company",
+        "email": "lisa@example.com",
+        "phone": "+1 (555) 123-4567",
+        "website": "https://example.com",
+        "product": "Our Solution",
+        "service": "Our Service",
+        "industry": "Technology"
+    }
+
+
+def _save_placeholders(placeholders_data):
+    """Save placeholder configuration to file"""
+    data = {
+        "created_at": datetime.now().isoformat(),
+        "placeholders": placeholders_data,
+        "notes": "Configure default placeholder values for email templates. These will be used when lead data is not available."
+    }
+    with open(PLACEHOLDERS_FILE, 'w') as f:
+        json.dump(data, f, indent=2)
 
 
 def _load_custom_templates():
@@ -202,6 +232,35 @@ def save_prompts():
         flash(f"Error saving prompts: {str(e)}", "error")
 
     return redirect(url_for('prompts'))
+
+
+@app.route('/placeholders', methods=['GET'])
+def placeholders():
+    """Placeholder configuration page"""
+    placeholders = _load_placeholders()
+    return render_template('placeholders.html', placeholders=placeholders)
+
+
+@app.route('/placeholders/save', methods=['POST'])
+def save_placeholders():
+    """Save placeholder configuration"""
+    try:
+        placeholders_data = {
+            "name": request.form.get('name', ''),
+            "company": request.form.get('company', ''),
+            "email": request.form.get('email', ''),
+            "phone": request.form.get('phone', ''),
+            "website": request.form.get('website', ''),
+            "industry": request.form.get('industry', ''),
+            "product": request.form.get('product', ''),
+            "service": request.form.get('service', ''),
+        }
+        _save_placeholders(placeholders_data)
+        flash("Placeholder configuration saved successfully.", "success")
+    except Exception as e:
+        flash(f"Error saving placeholders: {str(e)}", "error")
+
+    return redirect(url_for('placeholders'))
 
 
 @app.route('/trigger/<action>', methods=['POST'])
