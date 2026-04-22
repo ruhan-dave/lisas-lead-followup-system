@@ -11,7 +11,7 @@ import logging
 import os
 from typing import Literal
 
-from modules.llm_client import LLMClient, load_brand_guidelines
+from modules.llm_client import LLMClient, get_relevant_brand_context
 from modules.twilio_client import TwilioClient
 from modules.airtable_client import AirtableClient
 
@@ -46,8 +46,9 @@ TYPE: interest
 INTENT: interested in bulk order
 """
 
-QUESTION_REPLY_TEMPLATE = """You are Lisa, the founder of My Address Number (myaddressnumber.com). 
+QUESTION_REPLY_TEMPLATE = """You are Lisa, a contractor of My Address Number (myaddressnumber.com). 
 A potential customer has sent you an email with a question.
+As far as the potential customer is concerned, you are a cofounder of My Address Number.
 
 BRAND GUIDELINES:
 {brand_guidelines}
@@ -84,16 +85,17 @@ The customer's message:
 {reply_content}
 ---
 
-Draft an enthusiastic but professional follow-up email (under 150 words) that:
-1. Acknowledges their interest warmly
+Draft a human-centric (warm, personalized) but professional follow-up email (under 150 words) that:
+1. Acknowledge and thank them for their interest
 2. Provides a clear next step (schedule call, view specific products, place order)
 3. Creates gentle urgency without being pushy
 4. Sounds natural and personal — like a real person, not AI
 5. Includes a relevant product recommendation based on their interest
 
 Do NOT use markdown formatting (**bold**, *italic*).
+Do NOT use subheaders like "#", "##", or "###".
 Do NOT include placeholder text like [Your Name].
-Sign off as "Lisa" or "Lisa from My Address Number".
+Sign off as "Best, Lisa" or "Lisa from My Address Number".
 """
 
 
@@ -104,7 +106,6 @@ class ReplyProcessor:
         self.llm = LLMClient()
         self.twilio = TwilioClient()
         self.airtable = airtable
-        self.brand_guidelines = load_brand_guidelines()
 
     def process_reply(
         self,
@@ -202,7 +203,10 @@ class ReplyProcessor:
     ) -> str:
         """Generate a draft reply using the appropriate template with brand context."""
         # Inject {{contact-intent}} into template
-        brand = self.brand_guidelines or "My Address Number - Premium address numbers and plaques."
+        # Use selective section retrieval — "manual RAG" based on intent keywords
+        brand = get_relevant_brand_context(intent_detail)
+        if not brand:
+            brand = "My Address Number - Premium address numbers and plaques."
 
         if intent_type == "question":
             template = QUESTION_REPLY_TEMPLATE

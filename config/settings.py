@@ -26,6 +26,12 @@ class LLMConfig:
     API_KEY: str = os.getenv("OPENROUTER_API_KEY", "")
     MODEL: str = os.getenv("OPENROUTER_MODEL", "openai/gpt-4o-mini")
     BASE_URL: str = "https://openrouter.ai/api/v1"
+    # Fallback models (comma-separated) for automatic failover on rate limits / errors
+    FALLBACK_MODELS: list[str] = [
+        m.strip()
+        for m in os.getenv("OPENROUTER_FALLBACK_MODELS", "").split(",")
+        if m.strip()
+    ]
 
 
 class SMTPConfig:
