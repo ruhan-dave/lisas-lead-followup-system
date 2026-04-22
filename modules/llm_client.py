@@ -4,6 +4,7 @@ LLM client for generating email content via OpenRouter.
 Uses the OpenAI-compatible API provided by OpenRouter.
 """
 import logging
+import os
 import re
 
 from openai import OpenAI
@@ -11,6 +12,20 @@ from openai import OpenAI
 from config.settings import LLMConfig
 
 logger = logging.getLogger(__name__)
+
+
+def load_brand_guidelines() -> str:
+    """Load brand guidelines from brand.md file."""
+    brand_file = os.path.join(os.path.dirname(__file__), '..', 'brand.md')
+    if os.path.exists(brand_file):
+        try:
+            with open(brand_file, 'r') as f:
+                content = f.read()
+                logger.info("Loaded brand guidelines from brand.md")
+                return content
+        except Exception as e:
+            logger.warning("Failed to load brand.md: %s", e)
+    return ""
 
 
 def clean_email_content(content: str) -> str:
@@ -121,6 +136,7 @@ class LLMClient:
             base_url=LLMConfig.BASE_URL,
         )
         self.model = LLMConfig.MODEL
+        self.brand_guidelines = load_brand_guidelines()
 
     def generate_email(
         self,
@@ -135,15 +151,26 @@ class LLMClient:
             tuple: (generated_text, total_tokens_used)
         """
         logger.debug("Generating email with model=%s", self.model)
+
+        # Prepend brand guidelines to system prompt if available
+        if self.brand_guidelines:
+            enhanced_system_prompt = f"""BRAND GUIDELINES:
+{self.brand_guidelines}
+
+ORIGINAL SYSTEM PROMPT:
+{system_prompt}"""
+        else:
+            enhanced_system_prompt = system_prompt
+
         try:
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=[
-                    {"role": "system", "content": system_prompt},
+                    {"role": "system", "content": enhanced_system_prompt},
                     {"role": "user", "content": user_prompt},
                 ],
                 max_tokens=max_tokens,
-                temperature=0.7,
+                temperature=0.5,
             )
             content = response.choices[0].message.content or ""
             tokens_used = response.usage.total_tokens if response.usage else 0

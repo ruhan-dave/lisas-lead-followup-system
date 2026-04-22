@@ -51,6 +51,13 @@ class ABTestConfig:
     GROUP_SIZE: int = int(os.getenv("AB_GROUP_SIZE", "10"))
 
 
+class TwilioConfig:
+    ACCOUNT_SID: str = os.getenv("TWILIO_ACCOUNT_SID", "")
+    AUTH_TOKEN: str = os.getenv("TWILIO_AUTH_TOKEN", "")
+    FROM_NUMBER: str = os.getenv("TWILIO_FROM_NUMBER", "")
+    TO_NUMBER: str = os.getenv("TWILIO_TO_NUMBER", "")  # Lisa's phone number
+
+
 class SystemConfig:
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
     DRY_RUN: bool = os.getenv("DRY_RUN", "false").lower() == "true"

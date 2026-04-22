@@ -5,8 +5,13 @@ from flask import Flask, render_template, request, redirect, url_for, flash, jso
 import subprocess
 import os
 import json
+import threading
+import time
+import logging
 from datetime import datetime, timedelta
 from modules.airtable_client import AirtableClient
+from modules.imap_monitor import IMAPMonitor
+from modules.reply_processor import ReplyProcessor
 from config.settings import AirtableConfig
 from modules.ab_testing import WELCOME_VARIATIONS, FOLLOWUP_VARIATIONS
 from dotenv import load_dotenv
@@ -17,6 +22,114 @@ app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'dev-secret-key')
 
 airtable = AirtableClient()
+reply_processor = ReplyProcessor(airtable)
+
+# ── Background IMAP Reply Monitor ─────────────────────────────────────────
+
+def _background_imap_monitor(interval_minutes: int = 10):
+    """Background thread: check IMAP inbox every N minutes for replies."""
+    logger = logging.getLogger(__name__)
+    logger.info("Starting background IMAP monitor (every %d min)", interval_minutes)
+
+    imap = IMAPMonitor()
+    if not imap.enabled:
+        logger.warning("IMAP not configured. Background monitor will not run.")
+        return
+
+    # Track processed message IDs to avoid duplicates
+    processed_ids: set[str] = set()
+
+    while True:
+        try:
+            time.sleep(interval_minutes * 60)
+
+            # Fetch leads that might have replied (Intro-email-sent or Pending-1-week)
+            leads = (
+                airtable.get_leads_by_status("Intro-email-sent")
+                + airtable.get_leads_by_status("Pending-1-week")
+                + airtable.get_leads_by_status("Reminder-sent")
+            )
+
+            if not leads:
+                logger.debug("No active leads to check for replies")
+                continue
+
+            # Build sent_emails list for IMAP matching
+            sent_emails = []
+            lead_map: dict[str, dict] = {}
+            for lead in leads:
+                fields = lead.get("fields", {})
+                email = fields.get("Email", "")
+                if email:
+                    sent_emails.append({
+                        "email": email,
+                        "sent_at": lead.get("createdTime", ""),
+                        "lead_id": lead.get("id", ""),
+                    })
+                    lead_map[email] = lead
+
+            # Check IMAP for replies
+            replies = imap.check_for_replies(sent_emails)
+
+            for reply in replies:
+                msg_id = reply.get("message_id", "")
+                if msg_id in processed_ids:
+                    continue
+                processed_ids.add(msg_id)
+
+                sender_email = reply.get("sender_email", "")
+                lead = lead_map.get(sender_email)
+                if not lead:
+                    continue
+
+                lead_fields = lead.get("fields", {})
+                lead_name = lead_fields.get("Name", "there")
+                lead_record_id = lead.get("id", "")
+
+                logger.info(
+                    "New reply detected from %s (%s): %s",
+                    lead_name, sender_email, reply.get("subject", "")
+                )
+
+                # Process the reply (classify intent, generate draft, SMS, Airtable)
+                try:
+                    result = reply_processor.process_reply(
+                        lead_email=sender_email,
+                        lead_name=lead_name,
+                        reply_subject=reply.get("subject", ""),
+                        reply_content=reply.get("body", reply.get("subject", "")),
+                        lead_record_id=lead_record_id,
+                    )
+                    logger.info(
+                        "Reply processed: intent=%s, sms_sent=%s, airtable=%s",
+                        result["intent_detail"],
+                        result["sms_sent"],
+                        result["airtable_logged"],
+                    )
+                except Exception as e:
+                    logger.error("Failed to process reply from %s: %s", sender_email, e)
+
+        except Exception as e:
+            logger.error("Background IMAP monitor error: %s", e)
+            time.sleep(60)  # Retry in 1 minute on error
+
+
+# Start background thread on app startup (only once, not on reloads)
+_background_thread_started = False
+
+
+@app.before_request
+def _start_background_monitor():
+    global _background_thread_started
+    if not _background_thread_started and os.environ.get('WERKZEUG_RUN_MAIN') != 'true':
+        thread = threading.Thread(
+            target=_background_imap_monitor,
+            args=(10,),  # Check every 10 minutes
+            daemon=True,
+            name="IMAP-Monitor",
+        )
+        thread.start()
+        _background_thread_started = True
 
 # Path to custom prompts file (persists Lisa's edits)
 PROMPTS_FILE = os.path.join(os.path.dirname(__file__), 'config', 'custom_prompts.json')
@@ -293,4 +406,5 @@ def trigger_action(action):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=(os.environ.get('FLASK_DEBUG', 'false').lower() == 'true'))

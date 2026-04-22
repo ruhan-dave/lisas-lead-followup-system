@@ -30,6 +30,33 @@ def decode_email_header(header: str) -> str:
     return decoded_str
 
 
+def get_email_body(email_message) -> str:
+    """Extract plain text body from an email message."""
+    body = ""
+    if email_message.is_multipart():
+        for part in email_message.walk():
+            content_type = part.get_content_type()
+            content_disposition = str(part.get("Content-Disposition", ""))
+            if content_type == "text/plain" and "attachment" not in content_disposition:
+                try:
+                    payload = part.get_payload(decode=True)
+                    if payload:
+                        charset = part.get_content_charset() or "utf-8"
+                        body = payload.decode(charset, errors="ignore")
+                        break
+                except Exception:
+                    continue
+    else:
+        try:
+            payload = email_message.get_payload(decode=True)
+            if payload:
+                charset = email_message.get_content_charset() or "utf-8"
+                body = payload.decode(charset, errors="ignore")
+        except Exception:
+            pass
+    return body.strip()
+
+
 class IMAPMonitor:
     """Monitors IMAP inbox for email replies."""
 
@@ -105,6 +132,9 @@ class IMAPMonitor:
                 references = email_message.get("References", "")
                 subject = decode_email_header(email_message.get("Subject", ""))
 
+                # Extract email body for AI processing
+                body = get_email_body(email_message)
+
                 # Check if sender matches any of our sent email recipients
                 for sent in sent_emails:
                     if sender_email == sent.get("email"):
@@ -115,6 +145,7 @@ class IMAPMonitor:
                             "reply_time": reply_time,
                             "message_id": email_message.get("Message-ID", ""),
                             "subject": subject,
+                            "body": body,
                         })
                         logger.info("Found reply from %s (original: %s)", sender_email, sent.get("email"))
                         break

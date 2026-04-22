@@ -125,6 +125,15 @@ def metrics():
 
 
 @cli.command()
+def check_7days():
+    """Check for leads that are Intro-email-sent for 7+ days and move to Pending-1-week."""
+    console.print("\n[bold cyan]📅 Checking for 7-day old leads...[/bold cyan]\n")
+    orch = Orchestrator()
+    moved_count = orch.check_7day_leads()
+    console.print(f"[bold green]✓ Moved {moved_count} leads to Pending-1-week[/bold green]\n")
+
+
+@cli.command()
 def full_run():
     """Run both welcome and follow-up campaigns sequentially."""
     console.print(

@@ -2,13 +2,13 @@
   "created_at": null,
   "placeholders": {
     "name": "Lisa",
-    "company": "Your Company",
-    "email": "lisa@example.com",
-    "phone": "+1 (555) 123-4567",
-    "website": "https://example.com",
+    "company": "My Address Number",
+    "email": "lisa@egetmyaddressnumber.com",
+    "phone": "",
+    "website": "www.myaddressnumber.com",
     "product": "Our Solution",
-    "service": "Our Service",
-    "industry": "Technology"
+    "service": "Our Services",
+    "industry": "Home Decoration"
   },
   "notes": "Configure default placeholder values for email templates. These will be used when lead data is not available."
 }

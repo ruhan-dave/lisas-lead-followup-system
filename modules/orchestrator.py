@@ -72,13 +72,13 @@ class Orchestrator:
                 logger.warning("Failed to load placeholders: %s", e)
         return {
             "name": "Lisa",
-            "company": "Your Company",
-            "email": "lisa@example.com",
-            "phone": "+1 (555) 123-4567",
-            "website": "https://example.com",
+            "company": "My Address Number",
+            "email": "lisa@egetmyaddressnumber.com",
+            "phone": "",
+            "website": "www.myaddressnumber.com",
             "product": "Our Solution",
-            "service": "Our Service",
-            "industry": "Technology"
+            "service": "Our Services",
+            "industry": "Home Decoration"
         }
 
     def _generate_with_similarity_check(
@@ -194,18 +194,42 @@ class Orchestrator:
             responded_emails = {
                 r["fields"].get("Email", "") for r in responded_leads
             }
-            if email in responded_emails:
-                self.tracker.record_response(email)
-                logger.info("Lead %s has responded!", email)
 
-        metrics = self.tracker.get_all_metrics()
-        for m in metrics:
-            logger.info(
-                "Group %d: sent=%d, responses=%d, rate=%.1f%%, avg_time=%.1fh",
-                m["group"], m["emails_sent"], m["responses"],
-                m["response_rate"], m["avg_response_time_hours"],
-            )
-        return metrics
+            if email in responded_emails:
+                # Record the response
+                self.tracker.record_response(email)
+                logger.info("Recorded response from %s (via Airtable status check)", email)
+
+        # Return updated metrics
+        return self.tracker.get_all_metrics()
+
+    def check_7day_leads(self) -> int:
+        """
+        Check for leads that are Intro-email-sent for 7+ days and move to Pending-1-week.
+        Returns count of leads moved.
+        """
+        logger.info("Checking for leads 7+ days in Intro-email-sent status...")
+        from datetime import datetime, timedelta, timezone
+
+        leads = self.airtable.get_leads_by_status("Intro-email-sent")
+        moved_count = 0
+        seven_days_ago = datetime.now(timezone.utc) - timedelta(days=7)
+
+        for lead in leads:
+            created_time = lead.get("createdTime", "")
+            if created_time:
+                try:
+                    lead_time = datetime.fromisoformat(created_time.replace("Z", "+00:00"))
+                    if lead_time < seven_days_ago:
+                        # Move to Pending-1-week
+                        self.airtable.update_lead_status(lead["id"], "Pending-1-week")
+                        logger.info("Moved lead %s to Pending-1-week (7+ days since Intro-email-sent)", lead.get("id"))
+                        moved_count += 1
+                except Exception as e:
+                    logger.warning("Failed to parse lead time: %s", e)
+
+        logger.info("Moved %d leads from Intro-email-sent to Pending-1-week", moved_count)
+        return moved_count
 
     def run_daily_batch(self, status_filter: str = "Intro-email", 
                         batch_size: int = 3) -> list[ABGroup]:
@@ -284,7 +308,7 @@ class Orchestrator:
         for idx, (group, lead) in enumerate(batch_queue):
             variation = group.welcome_variation if "Intro" in status_filter else group.followup_variation
             email_type = "welcome" if "Intro" in status_filter else "followup"
-            next_status = "Pending-1-week" if email_type == "welcome" else "Pending-2-week"
+            next_status = "Intro-email-sent" if email_type == "welcome" else "Reminder-sent"
             msg_type = "welcome-email" if email_type == "welcome" else "followup-week1"
             
             logger.info(
@@ -480,7 +504,7 @@ class Orchestrator:
                 )
 
                 # Update lead status
-                self.airtable.update_lead_status(lead["id"], "Pending-1-week")
+                self.airtable.update_lead_status(lead["id"], "Intro-email-sent")
 
             # Small delay to avoid rate limits
             time.sleep(1)
@@ -549,7 +573,7 @@ class Orchestrator:
                 )
 
                 # Update lead status
-                self.airtable.update_lead_status(lead["id"], "Pending-2-week")
+                self.airtable.update_lead_status(lead["id"], "Reminder-sent")
 
             time.sleep(1)
 
