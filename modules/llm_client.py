@@ -207,7 +207,7 @@ def clean_email_content(content: str) -> str:
     return content
 
 
-def check_similarity(text1: str, text2: str, client) -> float:
+def check_similarity(text1: str, text2: str, client, model: str = None) -> float:
     """
     Use LLM to check semantic similarity between two texts.
 
@@ -216,25 +216,28 @@ def check_similarity(text1: str, text2: str, client) -> float:
     if not text1 or not text2:
         return 0.0
 
-    prompt = f"""
-    Compare these two emails and rate their semantic similarity on a scale of 0 to 1, where:
-    - 1.0 = Identical meaning and style
-    - 0.9 = Very similar meaning and style (minor differences)
-    - 0.7 = Similar meaning but different style
-    - 0.5 = Related topics but different content
-    - 0.0 = Completely different
+    # Fallback to config model if not provided
+    if model is None:
+        model = LLMConfig.MODEL
 
-    Email 1:
-    {text1}
+    prompt = f"""Compare these two emails and rate their semantic similarity on a scale of 0 to 1, where:
+- 1.0 = Identical meaning and style
+- 0.9 = Very similar meaning and style (minor differences)
+- 0.7 = Similar meaning but different style
+- 0.5 = Related topics but different content
+- 0.0 = Completely different
 
-    Email 2:
-    {text2}
+Email 1:
+{text1}
 
-    Return ONLY a number between 0 and 1 (e.g., 0.95, 0.87, 0.72). Do not include any other text."""
+Email 2:
+{text2}
+
+Return ONLY a number between 0 and 1 (e.g., 0.95, 0.87, 0.72). Do not include any other text."""
 
     try:
         response = client.chat.completions.create(
-            model=client.model,
+            model=model,
             messages=[{"role": "user", "content": prompt}],
             max_tokens=10,
             temperature=0.0,
@@ -280,10 +283,10 @@ class LLMClient:
         # Prepend brand guidelines to system prompt if available
         if self.brand_guidelines:
             enhanced_system_prompt = f"""BRAND GUIDELINES:
-{self.brand_guidelines}
+            {self.brand_guidelines}
 
-ORIGINAL SYSTEM PROMPT:
-{system_prompt}"""
+            ORIGINAL SYSTEM PROMPT:
+            {system_prompt}"""
         else:
             enhanced_system_prompt = system_prompt
 

@@ -34,10 +34,13 @@ jobs:
           AIRTABLE_AGENT_ACTIONS_TABLE: ${{ secrets.AIRTABLE_AGENT_ACTIONS_TABLE }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           OPENROUTER_MODEL: ${{ secrets.OPENROUTER_MODEL }}
+          OPENROUTER_FALLBACK_MODELS: ${{ secrets.OPENROUTER_FALLBACK_MODELS }}
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          EMAIL_FROM_NAME: ${{ secrets.EMAIL_FROM_NAME }}
           EMAIL_DAILY_LIMIT: ${{ secrets.EMAIL_DAILY_LIMIT }}
           EMAIL_MIN_DELAY_SECONDS: ${{ secrets.EMAIL_MIN_DELAY_SECONDS }}
           AB_GROUP_SIZE: ${{ secrets.AB_GROUP_SIZE }}

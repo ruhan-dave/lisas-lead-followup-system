@@ -111,7 +111,7 @@ class Orchestrator:
 
             # Check similarity against reference
             reference = REFERENCE_EMAILS[variation_id]
-            similarity = check_similarity(reference, body, self.llm.client)
+            similarity = check_similarity(reference, body, self.llm.client, model=self.llm.model)
 
             if similarity >= 0.9:
                 logger.info("Email similarity %.2f >= 0.9, using generated email", similarity)
@@ -459,7 +459,7 @@ class Orchestrator:
 
             # Generate personalized email
             user_prompt = variation["user_prompt_template"].format(name=name)
-            body = self.llm.generate_email(
+            body, tokens_used = self.llm.generate_email(
                 system_prompt=variation["system_prompt"],
                 user_prompt=user_prompt,
             )
@@ -476,7 +476,7 @@ class Orchestrator:
                     tools="welcome-email",
                     user_query=f"Welcome email to {name} from {fields.get('Company', '')}",
                     ai_message=body,
-                    total_tokens=0,  # LLM token count not tracked here
+                    total_tokens=tokens_used,
                 )
 
                 # IMMEDIATELY log to Airtable ai-messages
@@ -527,7 +527,7 @@ class Orchestrator:
 
             # Generate personalized follow-up
             user_prompt = variation["user_prompt_template"].format(name=name)
-            body = self.llm.generate_email(
+            body, tokens_used = self.llm.generate_email(
                 system_prompt=variation["system_prompt"],
                 user_prompt=user_prompt,
             )
@@ -544,7 +544,7 @@ class Orchestrator:
                     tools="followup-week1",
                     user_query=f"Follow-up email to {name} from {fields.get('Company', '')}",
                     ai_message=body,
-                    total_tokens=0,  # LLM token count not tracked here
+                    total_tokens=tokens_used,
                 )
 
                 # IMMEDIATELY log to Airtable ai-messages
