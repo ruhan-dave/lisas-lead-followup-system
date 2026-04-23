@@ -165,10 +165,16 @@ def clean_email_content(content: str) -> str:
 
     # Remove markdown bold (**text**)
     content = re.sub(r'\*\*(.*?)\*\*', r'\1', content)
-    # Remove markdown italic (*text*)
-    content = re.sub(r'\*(.*?)\*', r'\1', content)
+    # Remove markdown italic (*text*) — but NOT standalone bullet points
+    content = re.sub(r'(?<!\n)\*(.*?)\*(?!\n)', r'\1', content)
     # Remove markdown headers (# text)
     content = re.sub(r'^#\s+', '', content, flags=re.MULTILINE)
+
+    # Remove standalone bullet points at line start (* item or - item)
+    content = re.sub(r'^[\*\-]\s+', '', content, flags=re.MULTILINE)
+
+    # Remove any "Subject:" line that the LLM mistakenly includes in the body
+    content = re.sub(r'^Subject:.*\n?', '', content, flags=re.MULTILINE | re.IGNORECASE)
 
     # Remove placeholder links like [Link: ...] and [Link to ...]
     content = re.sub(r'\[Link: [^\]]+\]', '', content)
@@ -286,7 +292,14 @@ class LLMClient:
             {self.brand_guidelines}
 
             ORIGINAL SYSTEM PROMPT:
-            {system_prompt}"""
+            {system_prompt}
+
+            FORMATTING RULES (MUST FOLLOW):
+            - Write ONLY the email body text. Do NOT include a "Subject:" line.
+            - Do NOT use markdown formatting (**bold**, *italic*, # headers).
+            - Do NOT use asterisk (*) or dash (-) bullet points. Use plain paragraphs or numbered lists instead.
+            - Keep the tone warm and personal, like a real email from a person.
+            - Sign off as "Lisa" or "Lisa from My Address Number"."""
         else:
             enhanced_system_prompt = system_prompt
 

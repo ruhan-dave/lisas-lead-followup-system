@@ -62,5 +62,5 @@ We solve these problems by providing:
 
   - **Personal and Conversational**: "We've literally thought of everything so you don't have to".
   - **Product-Specific**: Tailor recommendations based on the user's home style (e.g., [Modern](https://www.google.com/search?q=https://www.myaddressnumber.com/collections/address-plaques/products/modern) or [Prestige](https://www.google.com/search?q=https://www.myaddressnumber.com/products/black-prestige)).
-  - **Concise and Scannable**: Use headers and bullet points to emphasize that "everything comes in the box".
+  - **Concise and Scannable**: Use short, plain paragraphs or numbered lists to emphasize that "everything comes in the box". Avoid asterisk (*) or dash (-) bullet points.
   - **Action-Oriented**: End with a call to "Explore" or "Watch how easy it is".
