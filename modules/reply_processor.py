@@ -69,6 +69,7 @@ Draft a warm, helpful, and concise email reply (under 150 words) that:
 
 Do NOT use markdown formatting (**bold**, *italic*).
 Do NOT include placeholder text like [Your Name].
+Avoid using "*" to make differnt points. Number them instead.
 Sign off as "Lisa" or "Lisa from My Address Number".
 """
 
