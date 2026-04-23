@@ -27,7 +27,7 @@ class EmailSender:
             min_delay_seconds: Minimum seconds between emails (uses EMAIL_MIN_DELAY_SECONDS env var or 5s)
             daily_limit: Maximum emails per day (uses EMAIL_DAILY_LIMIT env var or 100)
         """
-        self.host = SMTPConfig.SMTP_SERVER
+        self.host = SMTPConfig.SMTP_HOST
         self.port = SMTPConfig.SMTP_PORT
         self.user = SMTPConfig.SMTP_USER
         self.password = SMTPConfig.SMTP_PASSWORD
@@ -114,12 +114,18 @@ class EmailSender:
         msg.attach(MIMEText(html_body, "html"))
 
         try:
-            with smtplib.SMTP(self.host, self.port) as server:
+            # Port 465 uses SSL, port 587 uses STARTTLS
+            if self.port == 465:
+                server = smtplib.SMTP_SSL(self.host, self.port, timeout=10)
+            else:
+                server = smtplib.SMTP(self.host, self.port, timeout=10)
                 server.ehlo()
                 server.starttls()
                 server.ehlo()
-                server.login(self.user, self.password)
-                server.send_message(msg)
+
+            server.login(self.user, self.password)
+            server.send_message(msg)
+            server.quit()
             self._record_send()
             logger.info(
                 "Email sent successfully to %s (count: %d/%d)",

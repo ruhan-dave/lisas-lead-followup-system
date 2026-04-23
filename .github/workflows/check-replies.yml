@@ -38,7 +38,7 @@ jobs:
           AIRTABLE_AGENT_ACTIONS_URL: ${{ secrets.AIRTABLE_AGENT_ACTIONS_URL }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           OPENROUTER_MODEL: ${{ secrets.OPENROUTER_MODEL }}
-          SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}

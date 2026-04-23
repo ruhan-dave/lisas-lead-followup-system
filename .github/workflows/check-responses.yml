@@ -36,7 +36,7 @@ jobs:
           OPENROUTER_MODEL: ${{ secrets.OPENROUTER_MODEL }}
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
-          SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
           LOG_LEVEL: ${{ secrets.LOG_LEVEL }}
           DRY_RUN: ${{ secrets.DRY_RUN }}
