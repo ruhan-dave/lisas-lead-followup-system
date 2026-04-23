@@ -32,7 +32,7 @@ class EmailSender:
         self.user = SMTPConfig.SMTP_USER
         self.password = SMTPConfig.SMTP_PASSWORD
         self.from_name = EmailConfig.FROM_NAME
-        self.from_address = SMTPConfig.EMAIL_FROM
+        self.from_address = EmailConfig.FROM_ADDRESS
         self.dry_run = SystemConfig.DRY_RUN
         
         # Rate limiting settings from config or defaults

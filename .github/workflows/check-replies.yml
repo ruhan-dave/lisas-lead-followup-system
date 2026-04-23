@@ -42,7 +42,7 @@ jobs:
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
-          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          EMAIL_FROM_ADDRESS: ${{ secrets.EMAIL_FROM_ADDRESS }}
           IMAP_SERVER: ${{ secrets.IMAP_SERVER }}
           IMAP_PORT: ${{ secrets.IMAP_PORT }}
           AB_GROUP_SIZE: ${{ secrets.AB_GROUP_SIZE }}

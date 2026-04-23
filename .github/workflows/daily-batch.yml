@@ -39,7 +39,7 @@ jobs:
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
-          EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+          EMAIL_FROM_ADDRESS: ${{ secrets.EMAIL_FROM_ADDRESS }}
           EMAIL_FROM_NAME: ${{ secrets.EMAIL_FROM_NAME }}
           EMAIL_DAILY_LIMIT: ${{ secrets.EMAIL_DAILY_LIMIT }}
           EMAIL_MIN_DELAY_SECONDS: ${{ secrets.EMAIL_MIN_DELAY_SECONDS }}
