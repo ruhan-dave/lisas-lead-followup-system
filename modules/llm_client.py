@@ -298,6 +298,7 @@ class LLMClient:
             - Write ONLY the email body text. Do NOT include a "Subject:" line.
             - Do NOT use markdown formatting (**bold**, *italic*, # headers).
             - Do NOT use asterisk (*) or dash (-) bullet points. Use plain paragraphs or numbered lists instead.
+            - Keep paragraphs short — 2 to 3 sentences maximum per paragraph. Use line breaks between paragraphs.
             - Keep the tone warm and personal, like a real email from a person.
             - Sign off as "Lisa" or "Lisa from My Address Number"."""
         else:
