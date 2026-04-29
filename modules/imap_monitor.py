@@ -109,7 +109,7 @@ class IMAPMonitor:
 
         try:
             # Search for recent emails (last 7 days)
-            since_date = (datetime.now() - datetime.timedelta(days=7)).strftime("%d-%b-%Y")
+            since_date = (datetime.now() - timedelta(days=7)).strftime("%d-%b-%Y")
             mail.search(None, f'(SINCE "{since_date}")')
             _, message_ids = mail.search(None, f'(SINCE "{since_date}")')
 

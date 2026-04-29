@@ -431,6 +431,7 @@ class Orchestrator:
                 group_number=group.group_number,
                 email_type=email_type,
                 airtable_msg_record_id=record["id"],
+                lead_id=lead["id"],
             )
             
             # Update lead status
@@ -501,6 +502,7 @@ class Orchestrator:
                     group_number=group.group_number,
                     email_type="welcome",
                     airtable_msg_record_id=record["id"],
+                    lead_id=lead["id"],
                 )
 
                 # Update lead status
@@ -570,10 +572,11 @@ class Orchestrator:
                     group_number=group.group_number,
                     email_type="followup",
                     airtable_msg_record_id=record["id"],
+                    lead_id=lead["id"],
                 )
 
                 # Update lead status
-                self.airtable.update_lead_status(lead["id"], "Reminder-sent")
+                self.airtable.update_lead_status(lead["id"], "Pending-2-week")
 
             time.sleep(1)
 
