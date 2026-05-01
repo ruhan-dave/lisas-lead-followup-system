@@ -14,6 +14,7 @@ from typing import Literal
 from modules.llm_client import LLMClient, get_relevant_brand_context
 from modules.twilio_client import TwilioClient
 from modules.airtable_client import AirtableClient
+from modules.email_sender import EmailSender
 
 logger = logging.getLogger(__name__)
 
@@ -107,6 +108,7 @@ class ReplyProcessor:
         self.llm = LLMClient()
         self.twilio = TwilioClient()
         self.airtable = airtable
+        self.email_sender = EmailSender()
 
     def process_reply(
         self,
@@ -138,7 +140,23 @@ class ReplyProcessor:
         draft_reply = self._generate_draft(intent_type, intent_detail, reply_content)
         logger.info("Draft generated (%d chars)", len(draft_reply))
 
-        # Step 3: Log draft to Airtable
+        # Step 3: Send auto-reply back to the lead
+        auto_reply_sent = False
+        try:
+            # Use Re: prefix if not already present
+            reply_subject_clean = reply_subject
+            if not reply_subject_clean.lower().startswith("re:"):
+                reply_subject_clean = f"Re: {reply_subject_clean}"
+            auto_reply_sent = self.email_sender.send(
+                to_email=lead_email,
+                subject=reply_subject_clean,
+                body_text=draft_reply,
+            )
+            logger.info("Auto-reply sent to %s: %s", lead_email, auto_reply_sent)
+        except Exception as e:
+            logger.error("Failed to send auto-reply to %s: %s", lead_email, e)
+
+        # Step 4: Log draft to Airtable
         airtable_logged = self._log_draft(
             lead_email=lead_email,
             lead_name=lead_name,
@@ -163,6 +181,7 @@ class ReplyProcessor:
             "intent_type": intent_type,
             "intent_detail": intent_detail,
             "draft_reply": draft_reply,
+            "auto_reply_sent": auto_reply_sent,
             "sms_sent": sms_sent,
             "airtable_logged": airtable_logged,
         }
