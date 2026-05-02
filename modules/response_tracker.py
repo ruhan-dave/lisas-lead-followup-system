@@ -47,6 +47,7 @@ class ResponseTracker:
         email_type: str,
         airtable_msg_record_id: str,
         lead_id: str = "",
+        from_email: str = "",
     ) -> None:
         """Record that an email was sent to a lead."""
         key = str(group_number)
@@ -64,6 +65,7 @@ class ResponseTracker:
             "sent_at": datetime.now(timezone.utc).isoformat(),
             "airtable_record_id": airtable_msg_record_id,
             "lead_id": lead_id,
+            "from_email": from_email,
             "responded": False,
         }
         self._save_state()

@@ -15,6 +15,7 @@ from modules.llm_client import LLMClient, get_relevant_brand_context
 from modules.twilio_client import TwilioClient
 from modules.airtable_client import AirtableClient
 from modules.email_sender import EmailSender
+from modules.response_tracker import ResponseTracker
 
 logger = logging.getLogger(__name__)
 
@@ -104,11 +105,12 @@ Sign off as "Best, Lisa" or "Lisa from My Address Number".
 class ReplyProcessor:
     """Processes lead reply emails with AI intent classification and draft generation."""
 
-    def __init__(self, airtable: AirtableClient):
+    def __init__(self, airtable: AirtableClient, tracker: ResponseTracker = None):
         self.llm = LLMClient()
         self.twilio = TwilioClient()
         self.airtable = airtable
         self.email_sender = EmailSender()
+        self.tracker = tracker
 
     def process_reply(
         self,
@@ -140,9 +142,17 @@ class ReplyProcessor:
         draft_reply = self._generate_draft(intent_type, intent_detail, reply_content)
         logger.info("Draft generated (%d chars)", len(draft_reply))
 
-        # Step 3: Send auto-reply back to the lead
+        # Step 3: Send auto-reply back to the lead from the original sender
         auto_reply_sent = False
         try:
+            # Look up the sender email used in the original outbound email
+            from_email = None
+            if self.tracker:
+                entry = self.tracker.state.get("sent_emails", {}).get(lead_email)
+                if entry:
+                    from_email = entry.get("from_email")
+                    logger.info("Replying from original sender: %s", from_email)
+
             # Use Re: prefix if not already present
             reply_subject_clean = reply_subject
             if not reply_subject_clean.lower().startswith("re:"):
@@ -151,8 +161,9 @@ class ReplyProcessor:
                 to_email=lead_email,
                 subject=reply_subject_clean,
                 body_text=draft_reply,
+                from_address=from_email,
             )
-            logger.info("Auto-reply sent to %s: %s", lead_email, auto_reply_sent)
+            logger.info("Auto-reply sent to %s from %s: %s", lead_email, from_email or "default", auto_reply_sent)
         except Exception as e:
             logger.error("Failed to send auto-reply to %s: %s", lead_email, e)
 

@@ -37,7 +37,24 @@ class LLMConfig:
 class SMTPConfig:
     SMTP_HOST = os.getenv("SMTP_HOST")
     SMTP_PORT = int(os.getenv("SMTP_PORT", 587))
-    SMTP_USER = os.getenv("SMTP_USER")
+    # Comma-separated list of sender emails (for A/B group rotation)
+    SMTP_USERS: list[str] = [
+        u.strip()
+        for u in os.getenv("SMTP_USERS", "").split(",")
+        if u.strip()
+    ]
+    # Fallback: individual SMTP_USER1, SMTP_USER2, SMTP_USER3
+    if not SMTP_USERS:
+        SMTP_USERS = [
+            u for u in [
+                os.getenv("SMTP_USER1", "").strip(),
+                os.getenv("SMTP_USER2", "").strip(),
+                os.getenv("SMTP_USER3", "").strip(),
+            ]
+            if u
+        ]
+    # Backward compat: first SMTP_USERS entry, or legacy SMTP_USER
+    SMTP_USER = SMTP_USERS[0] if SMTP_USERS else os.getenv("SMTP_USER")
     SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
     EMAIL_FROM = os.getenv("EMAIL_FROM")
     # IMAP configuration for reply detection

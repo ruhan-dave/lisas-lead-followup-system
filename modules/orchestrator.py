@@ -16,7 +16,7 @@ import json
 import os
 from typing import Any
 
-from config.settings import EmailConfig
+from config.settings import EmailConfig, SMTPConfig
 
 from modules.ab_testing import ABGroup, ABTestEngine
 from modules.airtable_client import AirtableClient
@@ -80,6 +80,13 @@ class Orchestrator:
             "service": "Our Services",
             "industry": "Home Decoration"
         }
+
+    def _get_sender_for_group(self, group_number: int) -> str:
+        """Rotate through SMTP_USERS based on group number."""
+        users = SMTPConfig.SMTP_USERS
+        if not users:
+            return EmailConfig.FROM_ADDRESS or SMTPConfig.SMTP_USER or ""
+        return users[group_number % len(users)]
 
     def _generate_with_similarity_check(
         self,
@@ -398,8 +405,11 @@ class Orchestrator:
                 max_retries=3,
             )
 
+        # Determine sender email for this group (rotated)
+        from_email = self._get_sender_for_group(group.group_number)
+
         # Send email
-        success = self.email_sender.send(email, subject, body)
+        success = self.email_sender.send(email, subject, body, from_address=from_email)
         
         if success:
             group.emails_sent += 1
@@ -432,6 +442,7 @@ class Orchestrator:
                 email_type=email_type,
                 airtable_msg_record_id=record["id"],
                 lead_id=lead["id"],
+                from_email=from_email,
             )
             
             # Update lead status
@@ -465,9 +476,12 @@ class Orchestrator:
                 user_prompt=user_prompt,
             )
 
+            # Determine sender email for this group (rotated)
+            from_email = self._get_sender_for_group(group.group_number)
+
             # Send email
             subject = variation["subject"].format(name=name)
-            success = self.email_sender.send(email, subject, body)
+            success = self.email_sender.send(email, subject, body, from_address=from_email)
 
             if success:
                 group.emails_sent += 1
@@ -503,6 +517,7 @@ class Orchestrator:
                     email_type="welcome",
                     airtable_msg_record_id=record["id"],
                     lead_id=lead["id"],
+                    from_email=from_email,
                 )
 
                 # Update lead status
@@ -534,9 +549,12 @@ class Orchestrator:
                 user_prompt=user_prompt,
             )
 
+            # Determine sender email for this group (rotated)
+            from_email = self._get_sender_for_group(group.group_number)
+
             # Send email
             subject = variation["subject"].format(name=name)
-            success = self.email_sender.send(email, subject, body)
+            success = self.email_sender.send(email, subject, body, from_address=from_email)
 
             if success:
                 group.emails_sent += 1
@@ -573,6 +591,7 @@ class Orchestrator:
                     email_type="followup",
                     airtable_msg_record_id=record["id"],
                     lead_id=lead["id"],
+                    from_email=from_email,
                 )
 
                 # Update lead status

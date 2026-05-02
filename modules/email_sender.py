@@ -76,9 +76,15 @@ class EmailSender:
         self._emails_today += 1
         logger.debug("Email count today: %d/%d", self._emails_today, self.daily_limit)
 
-    def send(self, to_email: str, subject: str, body_text: str) -> bool:
+    def send(self, to_email: str, subject: str, body_text: str, from_address: str = None) -> bool:
         """
         Send a single email with rate limiting.
+
+        Args:
+            to_email: Recipient email address
+            subject: Email subject
+            body_text: Plain text body
+            from_address: Optional override for sender email (defaults to config)
 
         Returns True on success, False on failure.
         In dry-run mode, logs the email but does not actually send.
@@ -88,16 +94,18 @@ class EmailSender:
         if not self._check_rate_limit():
             return False
         
+        sender = from_address or self.from_address
+        
         if self.dry_run:
             self._record_send()
             logger.info(
-                "[DRY RUN] Would send email to=%s subject='%s' body_len=%d",
-                to_email, subject, len(body_text),
+                "[DRY RUN] Would send email from=%s to=%s subject='%s' body_len=%d",
+                sender, to_email, subject, len(body_text),
             )
             return True
 
         msg = MIMEMultipart("alternative")
-        msg["From"] = f"{self.from_name} <{self.from_address}>"
+        msg["From"] = f"{self.from_name} <{sender}>"
         msg["To"] = to_email
         msg["Subject"] = subject
 

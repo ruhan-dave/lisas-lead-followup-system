@@ -22,7 +22,9 @@ app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', 'dev-secret-key')
 
 airtable = AirtableClient()
-reply_processor = ReplyProcessor(airtable)
+from modules.response_tracker import ResponseTracker
+_tracker = ResponseTracker(airtable)
+reply_processor = ReplyProcessor(airtable, tracker=_tracker)
 
 # ── Background IMAP Reply Monitor ─────────────────────────────────────────
 
