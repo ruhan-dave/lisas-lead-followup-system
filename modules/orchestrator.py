@@ -337,7 +337,7 @@ class Orchestrator:
             
             # Small delay between emails in same batch (to avoid rate limits)
             if idx < len(batch_queue) - 1:
-                time.sleep(EmailConfig.MIN_DELAY_SECONDS)
+                time.sleep(120)
         
         # Return groups that were processed
         result_groups = [g for g in groups if g.group_number in processed_groups]
@@ -523,8 +523,8 @@ class Orchestrator:
                 # Update lead status
                 self.airtable.update_lead_status(lead["id"], "Intro-email-sent")
 
-            # Small delay to avoid rate limits
-            time.sleep(1)
+            # 2-minute delay to avoid bot detection
+            time.sleep(120)
 
     def _process_group_followup(self, group: ABGroup) -> None:
         """Generate and send follow-up emails for one A/B group."""
@@ -597,7 +597,8 @@ class Orchestrator:
                 # Update lead status
                 self.airtable.update_lead_status(lead["id"], "Pending-2-week")
 
-            time.sleep(1)
+            # 2-minute delay to avoid bot detection
+            time.sleep(120)
 
     def _log_campaign_summary(self, groups: list[ABGroup], campaign_name: str) -> None:
         """Log a summary of the campaign results."""
