@@ -33,8 +33,8 @@ logging.basicConfig(
 TARGET_EMAIL = "breakintoai@yahoo.com"
 SENDERS = SMTPConfig.SMTP_USERS or [SMTPConfig.SMTP_USER]
 BATCH_SCHEDULE = [9, 12, 15, 18]  # 9am, 12pm, 3pm, 6pm
-EMAILS_PER_BATCH = 3
-DAILY_TARGET = len(BATCH_SCHEDULE) * EMAILS_PER_BATCH  # 12
+EMAILS_PER_SENDER_PER_BATCH = 3
+DAILY_TARGET = len(BATCH_SCHEDULE) * EMAILS_PER_SENDER_PER_BATCH * len(SENDERS)  # 36
 
 STATE_FILE = Path(__file__).resolve().parent.parent / "logs" / "warmup_state.json"
 
@@ -111,12 +111,6 @@ def get_current_batch_index(now: datetime) -> int | None:
     return None
 
 
-def get_sender_for_slot(batch_idx: int, slot: int) -> str:
-    """Rotate through senders deterministically across all daily slots."""
-    slot_index = batch_idx * EMAILS_PER_BATCH + slot
-    return SENDERS[slot_index % len(SENDERS)]
-
-
 # ─── Main ──────────────────────────────────────────────────────────────────
 
 def run_warmup() -> int:
@@ -135,9 +129,10 @@ def run_warmup() -> int:
         logger.info("Daily target of %d already reached. Nothing to send.", DAILY_TARGET)
         return 0
 
-    # Calculate how many emails this batch should send
-    target_for_batch = (batch_idx + 1) * EMAILS_PER_BATCH
-    to_send = target_for_batch - state.sent_today
+    # Each batch sends 3 per sender (9 total). Track per-sender progress.
+    batch_target = EMAILS_PER_SENDER_PER_BATCH * len(SENDERS)
+    target_up_to_now = (batch_idx + 1) * batch_target
+    to_send = target_up_to_now - state.sent_today
     if to_send <= 0:
         logger.info("Batch %d already complete (%d/%d sent).", batch_idx + 1, state.sent_today, DAILY_TARGET)
         return 0
@@ -149,25 +144,31 @@ def run_warmup() -> int:
 
     sender = EmailSender(min_delay_seconds=2.0, daily_limit=50)
     sent_count = 0
+    total_in_batch = to_send
 
-    for slot in range(to_send):
-        from_email = get_sender_for_slot(batch_idx, slot)
-        success = sender.send(
-            to_email=TARGET_EMAIL,
-            subject=WELCOME_SUBJECT,
-            body_text=WELCOME_BODY,
-            from_address=from_email,
-        )
-        if success:
-            ts = datetime.now(timezone.utc).isoformat()
-            state.record_send(from_email, ts)
-            sent_count += 1
-            logger.info("Warmup email %d/%d sent from %s", state.sent_today, DAILY_TARGET, from_email)
-        else:
-            logger.warning("Failed to send warmup email from %s", from_email)
+    for from_email in SENDERS:
+        for _ in range(EMAILS_PER_SENDER_PER_BATCH):
+            success = sender.send(
+                to_email=TARGET_EMAIL,
+                subject=WELCOME_SUBJECT,
+                body_text=WELCOME_BODY,
+                from_address=from_email,
+            )
+            if success:
+                ts = datetime.now(timezone.utc).isoformat()
+                state.record_send(from_email, ts)
+                sent_count += 1
+                logger.info("Warmup email %d/%d sent from %s", state.sent_today, DAILY_TARGET, from_email)
+            else:
+                logger.warning("Failed to send warmup email from %s", from_email)
 
-        if slot < to_send - 1:
-            time.sleep(2)
+            if sent_count < total_in_batch:
+                time.sleep(2)
+
+            if state.sent_today >= DAILY_TARGET:
+                break
+        if state.sent_today >= DAILY_TARGET:
+            break
 
     logger.info("Warmup batch complete: %d sent today (%d/%d)", sent_count, state.sent_today, DAILY_TARGET)
     return sent_count
