@@ -20,7 +20,7 @@ This guide walks you through deploying the Lisa Lead Follow-Up System to Trigger
 ## Prerequisites
 
 1. **Node.js 18+** and **npm**
-2. **Python 3.10+**
+2. **Python 3.12+**
 3. **Trigger.dev account** (free tier available at [trigger.dev](https://trigger.dev))
 4. **Trigger.dev CLI** installed: `npm install -g @trigger.dev/cli`
 
@@ -71,7 +71,7 @@ trigger init
 
 Select:
 - **Project name**: `lead-followup-system`
-- **Runtime**: Python 3.10
+- **Runtime**: Python 3.12
 - **Region**: Choose closest to your Airtable data
 
 ### 4. Configure Environment Variables

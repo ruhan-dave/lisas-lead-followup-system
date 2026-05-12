@@ -41,7 +41,7 @@ An enhanced lead follow-up system that replaces the original n8n workflow with a
 
 ### 1. Prerequisites
 
-- **Python 3.10+**
+- **Python 3.12+**
 - **Airtable account** with a Personal Access Token
 - **OpenRouter API key** (for LLM email generation)
 - **Gmail App Password** (or any SMTP provider)

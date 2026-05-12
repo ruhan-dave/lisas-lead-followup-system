@@ -42,7 +42,7 @@ The Lisa Lead Follow-Up System is an A/B testing email campaign system with:
    - Get at https://openrouter.ai/keys
 
 ### Required Software
-- Python 3.11+
+- Python 3.12+
 - pip (Python package manager)
 - Git
 
