@@ -13,7 +13,6 @@ Usage: python scripts/warmup_sender.py
 import json
 import logging
 import sys
-import time
 from datetime import date, datetime, timezone
 from pathlib import Path
 
@@ -142,7 +141,7 @@ def run_warmup() -> int:
         batch_idx + 1, len(BATCH_SCHEDULE), BATCH_SCHEDULE[batch_idx], to_send,
     )
 
-    sender = EmailSender(min_delay_seconds=2.0, daily_limit=50)
+    sender = EmailSender(min_delay_seconds=120.0, daily_limit=50)
     sent_count = 0
     total_in_batch = to_send
 
@@ -161,9 +160,6 @@ def run_warmup() -> int:
                 logger.info("Warmup email %d/%d sent from %s", state.sent_today, DAILY_TARGET, from_email)
             else:
                 logger.warning("Failed to send warmup email from %s", from_email)
-
-            if sent_count < total_in_batch:
-                time.sleep(2)
 
             if state.sent_today >= DAILY_TARGET:
                 break
