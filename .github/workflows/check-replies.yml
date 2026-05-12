@@ -41,6 +41,10 @@ jobs:
           SMTP_HOST: ${{ secrets.SMTP_HOST }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
           SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_USER1: ${{ secrets.SMTP_USER1 }}
+          SMTP_USER2: ${{ secrets.SMTP_USER2 }}
+          SMTP_USER3: ${{ secrets.SMTP_USER3 }}
+          SMTP_USERS: ${{ secrets.SMTP_USERS }}
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           EMAIL_FROM_ADDRESS: ${{ secrets.EMAIL_FROM_ADDRESS }}
           IMAP_SERVER: ${{ secrets.IMAP_SERVER }}

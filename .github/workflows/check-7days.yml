@@ -27,6 +27,12 @@ jobs:
 
       - name: Check for 7-day old leads
         env:
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_USER1: ${{ secrets.SMTP_USER1 }}
+          SMTP_USER2: ${{ secrets.SMTP_USER2 }}
+          SMTP_USER3: ${{ secrets.SMTP_USER3 }}
+          SMTP_USERS: ${{ secrets.SMTP_USERS }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
           AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
           AIRTABLE_LEADS_TABLE: ${{ secrets.AIRTABLE_LEADS_TABLE }}

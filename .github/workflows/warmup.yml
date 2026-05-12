@@ -1,13 +1,13 @@
-name: Check Lead Responses
+name: Warmup Emails
 
 on:
   schedule:
-    # Hourly
-    - cron: '0 * * * *'
+    # 9am, 12pm, 3pm, 6pm UTC — 4 batches/day, 3 emails per sender per batch
+    - cron: '0 9,12,15,18 * * *'
   workflow_dispatch:
 
 jobs:
-  check-responses:
+  warmup:
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -25,16 +25,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Check responses
+      - name: Run warmup sender
         env:
           AIRTABLE_API_KEY: ${{ secrets.AIRTABLE_API_KEY }}
           AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
-          AIRTABLE_LEADS_TABLE: ${{ secrets.AIRTABLE_LEADS_TABLE }}
-          AIRTABLE_MESSAGES_TABLE: ${{ secrets.AIRTABLE_MESSAGES_TABLE }}
-          AIRTABLE_AGENT_ACTIONS_TABLE: ${{ secrets.AIRTABLE_AGENT_ACTIONS_TABLE }}
-          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
-          OPENROUTER_MODEL: ${{ secrets.OPENROUTER_MODEL }}
-          SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_USER1: ${{ secrets.SMTP_USER1 }}
           SMTP_USER2: ${{ secrets.SMTP_USER2 }}
           SMTP_USER3: ${{ secrets.SMTP_USER3 }}
@@ -42,7 +36,9 @@ jobs:
           SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
           SMTP_HOST: ${{ secrets.SMTP_HOST }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          EMAIL_FROM_NAME: ${{ secrets.EMAIL_FROM_NAME }}
+          EMAIL_FROM_ADDRESS: ${{ secrets.EMAIL_FROM_ADDRESS }}
+          EMAIL_MIN_DELAY_SECONDS: ${{ secrets.EMAIL_MIN_DELAY_SECONDS }}
           LOG_LEVEL: ${{ secrets.LOG_LEVEL }}
-          DRY_RUN: ${{ secrets.DRY_RUN }}
         run: |
-          python main.py check
+          python scripts/warmup_sender.py
